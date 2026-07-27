@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banco de Questões OAB — Poder Judiciário</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f4f1eb;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  color: #1a1a1a;
+}
+
+.page-header { max-width: 780px; margin: 0 auto 2rem; }
+
+.tema-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: #3C3489;
+  color: #fff;
+  border-radius: 5px;
+  padding: 4px 12px;
+  margin-bottom: 0.75rem;
+}
+
+.page-title { font-size: 26px; font-weight: 800; color: #1a1a1a; line-height: 1.2; margin-bottom: 0.4rem; }
+.page-sub { font-size: 14px; color: #888; }
+
+.score-bar {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  flex-wrap: wrap;
+}
+
+.score-item { text-align: center; }
+.score-num { font-size: 22px; font-weight: 800; color: #1a1a1a; line-height: 1; }
+.score-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.score-num.acertos { color: #3B6D11; }
+.score-num.erros { color: #A32D2D; }
+
+.progress-wrap { flex: 1; min-width: 120px; }
+.progress-track { background: #ede9e0; border-radius: 99px; height: 8px; overflow: hidden; }
+.progress-fill { background: #534AB7; height: 8px; border-radius: 99px; transition: width 0.4s ease; width: 0%; }
+.progress-label { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+.nav-wrap { max-width: 780px; margin: 0 auto 1.5rem; display: flex; flex-wrap: wrap; gap: 6px; }
+
+.nav-btn {
+  width: 38px; height: 38px; border-radius: 8px; border: 1.5px solid #ddd;
+  background: #fff; font-size: 13px; font-weight: 600; color: #888;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-btn:hover { border-color: #AFA9EC; color: #534AB7; }
+.nav-btn.active { border-color: #534AB7; background: #534AB7; color: #fff; }
+.nav-btn.correto { border-color: #639922; background: #EAF3DE; color: #3B6D11; }
+.nav-btn.errado { border-color: #E24B4A; background: #FCEBEB; color: #A32D2D; }
+
+.container { max-width: 780px; margin: 0 auto; }
+
+.q-card {
+  background: #fff; border-radius: 16px; padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07); display: none; animation: fadeIn 0.2s ease;
+}
+.q-card.visible { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+.q-num { font-size: 12px; font-weight: 700; background: #EEEDFE; color: #3C3489; border-radius: 5px; padding: 4px 10px; }
+.q-exame { font-size: 12px; color: #aaa; }
+.q-titulo { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; line-height: 1.35; }
+
+.enunciado {
+  font-size: 14px; line-height: 1.8; color: #444; border-left: 3px solid #534AB7;
+  padding-left: 1rem; margin-bottom: 1.25rem; background: #faf9f7;
+  border-radius: 0 8px 8px 0; padding: 0.875rem 1rem;
+}
+
+.comando { font-size: 14px; font-weight: 700; color: #534AB7; margin-bottom: 1rem; }
+
+.alternativas { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.25rem; }
+
+.alt-btn {
+  display: flex; align-items: flex-start; gap: 13px; background: #f8f7f4;
+  border: 1.5px solid #e5e2d9; border-radius: 10px; padding: 13px 15px;
+  cursor: pointer; text-align: left; transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  width: 100%; font-family: inherit;
+}
+.alt-btn:hover:not(:disabled) { border-color: #AFA9EC; background: #EEEDFE; transform: translateX(2px); }
+.alt-btn:disabled { cursor: default; }
+
+.alt-letter {
+  font-size: 12px; font-weight: 700; color: #aaa; width: 22px; height: 22px; min-width: 22px;
+  border-radius: 50%; border: 1.5px solid #ccc; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all 0.15s;
+}
+.alt-text { font-size: 14px; line-height: 1.65; color: #333; }
+
+.alt-btn.correct { background: #EAF3DE; border-color: #639922; }
+.alt-btn.correct .alt-letter { background: #639922; border-color: #639922; color: #fff; }
+.alt-btn.correct .alt-text { color: #27500A; font-weight: 600; }
+
+.alt-btn.wrong { background: #FCEBEB; border-color: #E24B4A; }
+.alt-btn.wrong .alt-letter { background: #E24B4A; border-color: #E24B4A; color: #fff; }
+.alt-btn.wrong .alt-text { color: #791F1F; }
+
+.feedback { display: none; border-radius: 10px; padding: 1rem 1.25rem; font-size: 14px; line-height: 1.75; margin-bottom: 1rem; }
+.feedback.show { display: block; }
+.feedback.acerto { background: #EAF3DE; border: 1px solid #97C459; color: #27500A; }
+.feedback.erro { background: #FCEBEB; border: 1px solid #F09595; color: #791F1F; }
+
+.fundamento-box {
+  display: none; border-radius: 10px; padding: 1rem 1.25rem; font-size: 13px; line-height: 1.8;
+  color: #555; border-left: 3px solid #534AB7; background: #f4f2fd; margin-bottom: 1rem;
+}
+.fundamento-box.show { display: block; }
+.caqui-box {
+  display: none; border-radius: 10px; padding: 1rem 1.25rem; font-size: 13px; line-height: 1.8;
+  color: #5a3e00; border-left: 3px solid #e8a000; background: #fff8e6; margin-bottom: 1rem;
+}
+.caqui-box.show { display: block; }
+.caqui-box h4 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #b87300; margin-bottom: 0.6rem; }
+.fundamento-box h4 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #534AB7; margin-bottom: 0.6rem; }
+
+.card-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 0.5rem; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn {
+  background: transparent; border: 1.5px solid #ddd; border-radius: 8px; padding: 7px 16px;
+  font-size: 13px; font-family: inherit; color: #666; cursor: pointer; transition: all 0.15s; display: none;
+}
+.btn:hover { border-color: #534AB7; color: #534AB7; }
+.btn.show { display: inline-flex; align-items: center; gap: 5px; }
+.btn.purple { border-color: #AFA9EC; color: #534AB7; }
+.btn.caqui { border-color: #e8a000; color: #b87300; }
+.btn.caqui:hover { background: #fff8e6; }
+.btn.purple:hover { background: #EEEDFE; }
+
+.status-text { font-size: 12px; color: #aaa; font-style: italic; }
+
+.pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; gap: 10px; }
+.pg-btn {
+  background: #fff; border: 1.5px solid #ddd; border-radius: 9px; padding: 9px 20px;
+  font-size: 14px; font-weight: 600; font-family: inherit; color: #555; cursor: pointer; transition: all 0.15s;
+}
+.pg-btn:hover { border-color: #534AB7; color: #534AB7; }
+.pg-btn:disabled { opacity: 0.3; cursor: default; }
+.pg-btn.primary { background: #534AB7; border-color: #534AB7; color: #fff; }
+.pg-btn.primary:hover { background: #3C3489; }
+.pg-info { font-size: 13px; color: #aaa; }
+
+@media (max-width: 600px) {
+  body { padding: 1rem 0.75rem; }
+  .q-card { padding: 1.25rem; }
+  .page-title { font-size: 20px; }
+  .score-bar { gap: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="tema-badge">📌 Banco de Questões OAB</span>
+  <h1 class="page-title">Constitucional — Poder Judiciário</h1>
+  <p class="page-sub">26 questões — Arts. 92 a 126, CF/88 · Estilo FGV</p>
+</div>
+
+<div class="score-bar">
+  <div class="score-item"><div class="score-num" id="sc-total">0</div><div class="score-label">Respondidas</div></div>
+  <div class="score-item"><div class="score-num acertos" id="sc-acertos">0</div><div class="score-label">Acertos</div></div>
+  <div class="score-item"><div class="score-num erros" id="sc-erros">0</div><div class="score-label">Erros</div></div>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label" id="progress-label">0 de 26 respondidas</div>
+  </div>
+</div>
+
+<div class="nav-wrap" id="nav-wrap"></div>
+
+<div class="container" id="questions-container"></div>
+
+<div class="container">
+  <div class="pagination">
+    <button class="pg-btn" id="btn-prev" onclick="navPage(-1)">← Anterior</button>
+    <span class="pg-info" id="pg-info">1 de 26</span>
+    <button class="pg-btn primary" id="btn-next" onclick="navPage(1)">Próxima →</button>
+  </div>
+</div>
+
+<script>
+const QUESTOES = [
+{
+  num: 1,
+  exame: "",
+  titulo: "Órgãos do Poder Judiciário",
+  enunciado: "Um candidato busca memorizar o rol completo dos órgãos que integram o Poder Judiciário brasileiro, conforme a Constituição Federal.",
+  comando: "Considerando o art. 92 da CF/88, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "O Conselho Nacional de Justiça não integra o Poder Judiciário, sendo órgão externo de controle vinculado ao Poder Executivo.",
+    B: "O Tribunal Superior do Trabalho não consta do rol constitucional dos órgãos do Poder Judiciário, apesar de efetivamente integrar essa estrutura na prática.",
+    C: "Integram o Poder Judiciário, entre outros órgãos, o STF, o Conselho Nacional de Justiça, o STJ, o Tribunal Superior do Trabalho, os Tribunais Regionais Federais e Juízes Federais, os Tribunais e Juízes do Trabalho, Eleitorais e Militares, e os Tribunais e Juízes dos Estados e do Distrito Federal.",
+    D: "O rol do art. 92 da CF/88 é meramente exemplificativo, podendo lei ordinária federal criar novos órgãos de cúpula do Poder Judiciário livremente."
+  },
+  feedbacks: {
+    A: "Incorreta. O CNJ foi incluído expressamente no rol do art. 92, I-A, CF/88 (EC 45/2004) como órgão do próprio Poder Judiciário, e não órgão externo vinculado ao Executivo.",
+    B: "Incorreta. O TST foi incluído no art. 92, II-A, CF/88 pela EC 92/2016 — consta expressamente do rol constitucional.",
+    C: "Correta! O art. 92, CF/88 (com as inclusões das EC 45/2004 e EC 92/2016) lista: STF, CNJ, STJ, TST, TRFs e Juízes Federais, Tribunais e Juízes do Trabalho, Tribunais e Juízes Eleitorais, Tribunais e Juízes Militares, e Tribunais e Juízes dos Estados e do DF/Territórios.",
+    D: "Incorreta. O rol do art. 92 é taxativo — a criação de novos órgãos de cúpula do Judiciário exige emenda constitucional, não lei ordinária."
+  },
+  fundamento: "Art. 92, CF/88 (EC 45/2004 e EC 92/2016).",
+  caqui: "Esse rol é taxativo e já sofreu duas inclusões importantes por emenda: o CNJ entrou em 2004 (Reforma do Judiciário) e o TST entrou só em 2016 — antes disso, curiosamente, o TST não constava expressamente do art. 92, apesar de sempre ter existido como órgão de cúpula da Justiça do Trabalho."
+},
+{
+  num: 2,
+  exame: "",
+  titulo: "Vitaliciedade da Magistratura",
+  enunciado: "Um juiz recém-empossado, com apenas um ano de exercício no cargo, é alvo de processo administrativo disciplinar perante o tribunal a que está vinculado.",
+  comando: "Considerando o art. 95, I, da CF/88, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "Como todo magistrado é vitalício desde a posse, a perda do cargo do juiz só pode ocorrer por sentença judicial transitada em julgado, independentemente do tempo de exercício.",
+    B: "Antes de completar dois anos de exercício, a perda do cargo do magistrado pode ocorrer por deliberação do tribunal a que estiver vinculado; após esse período, a perda do cargo somente ocorre por sentença judicial transitada em julgado.",
+    C: "A vitaliciedade é adquirida imediatamente com a posse, sendo vedada, em qualquer hipótese e a qualquer tempo, a perda do cargo por deliberação administrativa do tribunal.",
+    D: "A vitaliciedade somente é adquirida após cinco anos de efetivo exercício na magistratura, prazo uniforme para primeira e segunda instâncias."
+  },
+  feedbacks: {
+    A: "Incorreta. A vitaliciedade plena (com a garantia de perda do cargo só por sentença judicial) é adquirida apenas após dois anos de exercício — antes disso, vigora regime diferente.",
+    B: "Correta! O art. 95, I, CF/88 prevê que, no primeiro grau, a vitaliciedade é adquirida após dois anos de exercício, dependendo a perda do cargo, nesse período inicial, de deliberação do tribunal a que o juiz estiver vinculado; depois de adquirida a vitaliciedade, a perda do cargo só ocorre por sentença judicial transitada em julgado.",
+    C: "Incorreta. Nos primeiros dois anos, é justamente possível a perda do cargo por deliberação do tribunal — a vedação a essa via administrativa só vale depois de adquirida a vitaliciedade.",
+    D: "Incorreta. O prazo é de dois anos, não cinco, e se aplica ao juiz de primeiro grau; Ministros de tribunais superiores adquirem vitaliciedade com a posse."
+  },
+  fundamento: "Art. 95, I, CF/88.",
+  caqui: "Pensa em dois estágios: nos primeiros 2 anos de carreira, o juiz ainda está em 'período de prova' reforçado — pode perder o cargo por decisão do próprio tribunal. Depois dos 2 anos, a proteção fica bem mais forte: só sentença judicial transitada em julgado tira o cargo dele."
+},
+{
+  num: 3,
+  exame: "",
+  titulo: "Inamovibilidade",
+  enunciado: "Um tribunal pretende remover um juiz de sua comarca de origem para outra, sem que ele tenha manifestado concordância, sob a justificativa de interesse público.",
+  comando: "Considerando o art. 95, II, da CF/88, assinale a alternativa correta.",
+  gabarito: "D",
+  alternativas: {
+    A: "A remoção de juiz sem sua concordância é absolutamente vedada pela Constituição, em qualquer hipótese, ainda que por interesse público.",
+    B: "A remoção pode ocorrer livremente, a critério do presidente do tribunal, sem necessidade de qualquer votação ou processo específico.",
+    C: "A remoção por interesse público depende de decisão do Conselho Nacional de Justiça, sendo vedada a deliberação pelo próprio tribunal de origem.",
+    D: "É garantida a inamovibilidade do magistrado, salvo por motivo de interesse público, na forma do art. 93, VIII, mediante decisão por voto da maioria absoluta do respectivo tribunal ou do Conselho Nacional de Justiça, assegurada ampla defesa."
+  },
+  feedbacks: {
+    A: "Incorreta. A inamovibilidade não é absoluta — admite exceção por interesse público, respeitado o procedimento constitucional.",
+    B: "Incorreta. Não é decisão livre do presidente do tribunal — exige votação por maioria absoluta do tribunal (ou decisão do CNJ), com ampla defesa assegurada.",
+    C: "Incorreta. A decisão pode ser tomada tanto pelo próprio tribunal (maioria absoluta) quanto pelo CNJ — não é competência exclusiva deste último.",
+    D: "Correta! O art. 95, II, CF/88 garante a inamovibilidade, ressalvada a exceção por interesse público (art. 93, VIII), mediante decisão da maioria absoluta do tribunal respectivo ou do CNJ, sempre assegurada ampla defesa."
+  },
+  fundamento: "Art. 95, II, CF/88 c/c art. 93, VIII, CF/88.",
+  caqui: "A inamovibilidade não significa 'nunca pode ser removido' — significa que a remoção não pode ser arbitrária. Só ocorre por interesse público, com votação qualificada (maioria absoluta) do próprio tribunal ou do CNJ, e sempre com direito de defesa do magistrado afetado."
+},
+{
+  num: 4,
+  exame: "",
+  titulo: "Quarentena do Magistrado Aposentado ou Exonerado",
+  enunciado: "Um juiz se aposenta e, logo em seguida, pretende advogar perante o mesmo tribunal em que atuava antes da aposentadoria.",
+  comando: "Considerando o art. 95, parágrafo único, V, da CF/88, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "É vedado ao magistrado exercer a advocacia no juízo ou tribunal do qual se afastou, antes de decorridos três anos do afastamento do cargo, por aposentadoria ou exoneração.",
+    B: "Não há qualquer restrição constitucional ao exercício da advocacia por ex-magistrado, podendo ele atuar imediatamente perante o mesmo tribunal em que atuava.",
+    C: "A vedação de advogar no juízo de origem é permanente e vitalícia, não comportando qualquer prazo de superação.",
+    D: "A vedação de advogar no juízo de origem aplica-se apenas a juízes exonerados por punição disciplinar, não alcançando os aposentados voluntariamente."
+  },
+  feedbacks: {
+    A: "Correta! O art. 95, parágrafo único, V, CF/88 (incluído pela EC 45/2004) veda o exercício da advocacia pelo magistrado no juízo ou tribunal do qual se afastou, antes de decorridos três anos do afastamento do cargo por aposentadoria ou exoneração — é a chamada 'quarentena'.",
+    B: "Incorreta. Há, sim, restrição expressa: a quarentena de três anos, contada do afastamento.",
+    C: "Incorreta. A vedação não é permanente — dura três anos, findos os quais o ex-magistrado pode advogar normalmente perante o juízo de origem.",
+    D: "Incorreta. A vedação se aplica tanto a aposentadoria quanto a exoneração, sem distinguir se foi voluntária ou disciplinar."
+  },
+  fundamento: "Art. 95, parágrafo único, V, CF/88 (EC 45/2004).",
+  caqui: "A 'quarentena' evita que o ex-juiz use, recém-saído do cargo, seu prestígio e relacionamentos dentro do próprio tribunal em favor de clientes. Três anos é o prazo — depois disso, pode advogar normalmente onde antes julgava."
+},
+{
+  num: 5,
+  exame: "",
+  titulo: "Vedação à Atividade Político-Partidária",
+  enunciado: "Um juiz deseja se filiar a partido político e participar ativamente de campanhas eleitorais, mantendo-se no cargo.",
+  comando: "Considerando o art. 95, parágrafo único, III, da CF/88, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "É permitida a filiação partidária e a participação em campanhas eleitorais, desde que o magistrado se afaste temporariamente da jurisdição durante o período eleitoral.",
+    B: "É vedado ao magistrado dedicar-se à atividade político-partidária, sem exceção baseada em afastamento temporário do cargo.",
+    C: "A vedação à atividade político-partidária se aplica apenas a juízes de primeiro grau, não alcançando Ministros de tribunais superiores.",
+    D: "A vedação é meramente ética, sem força constitucional cogente, cabendo a cada tribunal decidir livremente sobre sua aplicação."
+  },
+  feedbacks: {
+    A: "Incorreta. Não há essa exceção de afastamento temporário — a vedação é uma das garantias/vedações constitucionais aplicáveis a todo magistrado em atividade.",
+    B: "Correta! O art. 95, parágrafo único, III, CF/88 veda ao magistrado dedicar-se a atividade político-partidária, sem previsão de exceção por afastamento temporário.",
+    C: "Incorreta. A vedação é aplicável a toda a magistratura, sem distinção de grau ou tribunal.",
+    D: "Incorreta. A vedação tem status constitucional, prevista expressamente no texto da Constituição — não é mera diretriz ética infralegal."
+  },
+  fundamento: "Art. 95, parágrafo único, III, CF/88.",
+  caqui: "A lógica é preservar a imparcialidade da magistratura: quem julga não pode, ao mesmo tempo, estar filiado e ativo na disputa político-partidária. É vedação total, sem 'meio-termo' de afastamento temporário para participar de campanha."
+},
+{
+  num: 6,
+  exame: "",
+  titulo: "Ingresso na Carreira da Magistratura",
+  enunciado: "Um tribunal estadual organiza processo seletivo para o ingresso de novos juízes em seus quadros.",
+  comando: "Considerando o art. 93, I, da CF/88, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "O ingresso na carreira da magistratura pode se dar por livre indicação do Governador do Estado, dispensado concurso público, desde que aprovado pela Assembleia Legislativa.",
+    B: "O concurso de ingresso na magistratura exige apenas prova de títulos, sendo dispensada a realização de provas escritas, orais ou práticas.",
+    C: "O ingresso na carreira dar-se-á mediante concurso público de provas e títulos, com a participação da Ordem dos Advogados do Brasil em todas as fases, exigindo-se do bacharel em direito, no mínimo, três anos de atividade jurídica.",
+    D: "A participação da OAB no concurso de ingresso na magistratura é meramente opcional, a critério de cada tribunal organizador."
+  },
+  feedbacks: {
+    A: "Incorreta. Não há livre indicação para cargos de juiz de carreira — o ingresso exige concurso público, sem exceção dessa natureza.",
+    B: "Incorreta. O concurso de ingresso na magistratura é de provas E títulos — não se limita a títulos, exigindo também provas.",
+    C: "Correta! O art. 93, I, CF/88 exige concurso público de provas e títulos para ingresso na carreira, com participação da OAB em todas as fases, e exigência de, no mínimo, três anos de atividade jurídica do bacharel em direito.",
+    D: "Incorreta. A participação da OAB é constitucionalmente obrigatória em todas as fases do concurso, não uma opção do tribunal organizador."
+  },
+  fundamento: "Art. 93, I, CF/88 (EC 45/2004).",
+  caqui: "Três elementos-chave do concurso de ingresso: provas E títulos (não só um dos dois), participação obrigatória da OAB em todas as fases, e exigência mínima de 3 anos de atividade jurídica do bacharel — essa exigência dos 3 anos também é uma novidade trazida pela EC 45/2004, a Reforma do Judiciário."
+},
+{
+  num: 7,
+  exame: "",
+  titulo: "Promoção na Carreira da Magistratura",
+  enunciado: "Um juiz de primeira instância, com bom desempenho, aguarda promoção dentro da carreira da magistratura estadual.",
+  comando: "Considerando o art. 93, II, da CF/88, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "A promoção de entrância para entrância, alternadamente, por antiguidade e por merecimento, atende a critérios objetivos de produtividade e presteza no exercício da jurisdição, sendo obrigatória a promoção do juiz que figurar por três vezes consecutivas ou cinco alternadas em lista de merecimento.",
+    B: "A promoção na magistratura ocorre exclusivamente por merecimento, critério que prevalece de forma absoluta sobre a antiguidade em todas as promoções.",
+    C: "A promoção ocorre exclusivamente por antiguidade, sendo o merecimento critério aplicável apenas para o acesso aos tribunais superiores.",
+    D: "Não há regra constitucional específica sobre os critérios de promoção, cabendo a cada tribunal estabelecer livremente seu próprio sistema."
+  },
+  feedbacks: {
+    A: "Correta! O art. 93, II, CF/88 estabelece a alternância entre antiguidade e merecimento nas promoções de entrância, com aferição do merecimento por critérios objetivos, e promoção obrigatória do juiz que figurar por 3 vezes consecutivas ou 5 alternadas em lista de merecimento.",
+    B: "Incorreta. A promoção não é só por merecimento — alterna-se com a antiguidade, conforme a regra constitucional.",
+    C: "Incorreta. Não é só por antiguidade — o merecimento também é critério de promoção dentro da própria carreira de primeiro e segundo graus, alternando-se com a antiguidade.",
+    D: "Incorreta. Há regra constitucional expressa e detalhada no art. 93, II, CF/88 sobre os critérios de promoção."
+  },
+  fundamento: "Art. 93, II, CF/88 (EC 45/2004).",
+  caqui: "Antiguidade e merecimento se revezam nas promoções — não é 'um ou outro' fixo, é alternância. E tem uma regra de proteção ao juiz que se destaca: se ele aparecer 3 vezes seguidas ou 5 vezes alternadas na lista de merecimento, a promoção vira obrigatória, não mais discricionária do tribunal."
+},
+{
+  num: 8,
+  exame: "",
+  titulo: "Publicidade e Motivação das Decisões Judiciais",
+  enunciado: "Um processo tramita perante determinado juízo, e a parte contrária questiona se as sessões de julgamento e a decisão proferida atendem às exigências constitucionais mínimas.",
+  comando: "Considerando o art. 93, IX, da CF/88, assinale a alternativa correta.",
+  gabarito: "D",
+  alternativas: {
+    A: "A motivação das decisões judiciais é recomendável, mas sua ausência não gera nulidade, tratando-se de mera formalidade sem consequência jurídica relevante.",
+    B: "A publicidade dos julgamentos é absoluta, sendo vedada qualquer limitação de presença, mesmo em processos que exijam preservação do direito à intimidade do interessado no sigilo.",
+    C: "A exigência de motivação das decisões aplica-se apenas às sentenças de mérito, não alcançando decisões interlocutórias ou despachos.",
+    D: "Todos os julgamentos dos órgãos do Poder Judiciário serão públicos, e fundamentadas todas as decisões, sob pena de nulidade, podendo a lei limitar a presença, em determinados atos, às próprias partes e a seus advogados, ou somente a estes, em casos em que a preservação do direito à intimidade do interessado no sigilo não prejudique o interesse público à informação."
+  },
+  feedbacks: {
+    A: "Incorreta. A ausência de motivação gera, sim, nulidade — não é mera formalidade dispensável.",
+    B: "Incorreta. A publicidade admite limitação legal em hipóteses específicas de preservação da intimidade, desde que não prejudique o interesse público à informação.",
+    C: "Incorreta. A exigência de fundamentação, na redação constitucional, refere-se a 'todas as decisões' dos órgãos do Judiciário, não se restringindo às sentenças de mérito.",
+    D: "Correta! O art. 93, IX, CF/88 (redação da EC 45/2004) exige publicidade dos julgamentos e fundamentação de todas as decisões, sob pena de nulidade, permitindo à lei limitar a presença a partes/advogados (ou só a estes) quando a preservação da intimidade não prejudicar o interesse público à informação."
+  },
+  fundamento: "Art. 93, IX, CF/88 (EC 45/2004).",
+  caqui: "Publicidade e motivação são regras fortes, com pena de nulidade — não são meros ideais. Mas a publicidade não é absoluta: pode ser restrita a partes e advogados quando a intimidade estiver em jogo, desde que isso não sacrifique o interesse público de saber o que está sendo decidido."
+},
+{
+  num: 9,
+  exame: "",
+  titulo: "Quinto Constitucional",
+  enunciado: "Um Tribunal Regional Federal precisa preencher vaga de desembargador reservada a advogado, conforme a composição mista prevista na Constituição.",
+  comando: "Considerando o art. 94 da CF/88, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "A vaga deve ser preenchida por qualquer advogado inscrito na OAB, independentemente do tempo de exercício da advocacia, mediante escolha direta do Presidente da República.",
+    B: "Um quinto dos lugares dos Tribunais Regionais Federais, dos Tribunais dos Estados e do Distrito Federal e Territórios será composto de membros do Ministério Público, com mais de dez anos de carreira, e de advogados de notório saber jurídico e reputação ilibada, com mais de dez anos de efetiva atividade profissional, indicados em lista sêxtupla pelos órgãos de representação das respectivas classes.",
+    C: "O quinto constitucional aplica-se exclusivamente aos Tribunais Superiores, não alcançando os Tribunais Regionais Federais nem os Tribunais de Justiça estaduais.",
+    D: "A lista sêxtupla é elaborada pelo próprio tribunal, sem qualquer participação dos órgãos de representação de classe dos advogados ou do Ministério Público."
+  },
+  feedbacks: {
+    A: "Incorreta. Exige-se mais de 10 anos de efetiva atividade profissional, notório saber jurídico e reputação ilibada — não é qualquer advogado, e a escolha não é direta e livre do Presidente, mas segue o rito de lista sêxtupla, lista tríplice e nomeação.",
+    B: "Correta! O art. 94, CF/88 estabelece o quinto constitucional nos TRFs e Tribunais dos Estados/DF, com um quinto das vagas para membros do MP (mais de 10 anos de carreira) e advogados (mais de 10 anos de atividade, notório saber jurídico e reputação ilibada), indicados em lista sêxtupla pelos órgãos de representação de classe.",
+    C: "Incorreta. O quinto constitucional se aplica justamente aos TRFs e Tribunais dos Estados/DF — não aos Tribunais Superiores, que têm composição própria.",
+    D: "Incorreta. A lista sêxtupla é elaborada pelos órgãos de representação das respectivas classes (OAB, para advogados; MP, para membros do parquet), não pelo próprio tribunal."
+  },
+  fundamento: "Art. 94, CF/88.",
+  caqui: "O quinto constitucional é a 'porta de entrada' de advogados e membros do MP nos tribunais de segundo grau (TRF e TJ), sem passar pelo concurso da carreira da magistratura. O rito clássico: lista sêxtupla (classe) → lista tríplice (tribunal) → nomeação (chefe do Executivo). Precisa de 10 anos de atividade e reputação ilibada."
+},
+{
+  num: 10,
+  exame: "",
+  titulo: "Composição do Supremo Tribunal Federal",
+  enunciado: "Discute-se o número de integrantes do Supremo Tribunal Federal e os requisitos para ocupar o cargo de Ministro.",
+  comando: "Considerando o art. 101 da CF/88, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "O STF compõe-se de nove Ministros, escolhidos entre cidadãos com mais de trinta anos de idade, sem exigência de notável saber jurídico.",
+    B: "O STF compõe-se de quinze Ministros, número idêntico ao do Conselho Nacional de Justiça, por decisão do constituinte originário.",
+    C: "O Supremo Tribunal Federal compõe-se de onze Ministros, escolhidos dentre cidadãos com mais de trinta e cinco e menos de setenta anos de idade, de notável saber jurídico e reputação ilibada.",
+    D: "A escolha dos Ministros do STF independe de qualquer requisito de idade, bastando notável saber jurídico comprovado por diploma de doutorado."
+  },
+  feedbacks: {
+    A: "Incorreta. O STF é composto por 11 Ministros, não 9, e há sim exigência de notável saber jurídico e reputação ilibada.",
+    B: "Incorreta. O STF tem 11 Ministros; o CNJ tem 15 membros — números diferentes, referentes a órgãos distintos.",
+    C: "Correta! O art. 101, caput, CF/88 fixa a composição do STF em 11 Ministros, escolhidos dentre cidadãos com mais de 35 e menos de 70 anos de idade, de notável saber jurídico e reputação ilibada.",
+    D: "Incorreta. Há sim faixa etária exigida (mais de 35 e menos de 70 anos), e o requisito de notável saber jurídico não depende de diploma específico de doutorado."
+  },
+  fundamento: "Art. 101, caput, CF/88.",
+  caqui: "Onze Ministros — número clássico, muito cobrado em prova. E a faixa etária (35 a 70 anos) junto com notável saber jurídico e reputação ilibada são os requisitos que valem tanto para o STF quanto, com adaptações, para os demais Tribunais Superiores."
+},
+{
+  num: 11,
+  exame: "",
+  titulo: "Nomeação dos Ministros do STF",
+  enunciado: "Um cidadão preenche os requisitos constitucionais para o cargo de Ministro do Supremo Tribunal Federal e é indicado pelo Presidente da República.",
+  comando: "Considerando o art. 101, parágrafo único, da CF/88, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "Os Ministros do STF serão nomeados pelo Presidente da República, depois de aprovada a escolha pela maioria absoluta do Senado Federal.",
+    B: "Os Ministros do STF são escolhidos exclusivamente pelo próprio Supremo Tribunal Federal, em lista tríplice submetida à ratificação do Congresso Nacional.",
+    C: "A aprovação da escolha do indicado ao STF compete à Câmara dos Deputados, por maioria simples dos presentes à sessão.",
+    D: "A nomeação de Ministro do STF independe de qualquer aprovação do Poder Legislativo, sendo ato exclusivo e discricionário do Presidente da República."
+  },
+  feedbacks: {
+    A: "Correta! O art. 101, parágrafo único, CF/88 prevê que os Ministros do STF são nomeados pelo Presidente da República, após aprovação da escolha pela maioria absoluta do Senado Federal.",
+    B: "Incorreta. Não há lista tríplice elaborada pelo próprio STF para essa nomeação — a indicação parte do Presidente da República.",
+    C: "Incorreta. A aprovação compete ao Senado Federal, não à Câmara dos Deputados.",
+    D: "Incorreta. Há, sim, necessidade de aprovação do Senado Federal — não é ato discricionário isolado do Presidente."
+  },
+  fundamento: "Art. 101, parágrafo único, CF/88.",
+  caqui: "Mesmo modelo de 'freios e contrapesos' que vimos para outras nomeações do art. 84, XIV: o Presidente indica, o Senado aprova por maioria absoluta, só depois vem a nomeação efetiva. Isso vale para o STF e, com adaptações, para outros tribunais superiores."
+},
+{
+  num: 12,
+  exame: "",
+  titulo: "Competência Originária do STF",
+  enunciado: "Uma Ação Direta de Inconstitucionalidade é ajuizada questionando lei federal em face da Constituição Federal.",
+  comando: "Considerando o art. 102, I, 'a', da CF/88, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "A competência para processar e julgar originariamente a ADI é do Superior Tribunal de Justiça, por se tratar de controle abstrato de constitucionalidade de lei federal.",
+    B: "Compete ao Supremo Tribunal Federal, precipuamente, a guarda da Constituição, cabendo-lhe processar e julgar, originariamente, a ação direta de inconstitucionalidade de lei ou ato normativo federal ou estadual.",
+    C: "A ADI de lei federal deve ser processada e julgada originariamente pelo Tribunal Regional Federal da região onde a lei produzir seus principais efeitos.",
+    D: "Não há competência originária constitucionalmente fixada para a ADI, cabendo a lei ordinária federal definir o órgão competente."
+  },
+  feedbacks: {
+    A: "Incorreta. A competência para ADI é do STF, não do STJ — o controle abstrato de constitucionalidade em face da CF é atribuição do STF.",
+    B: "Correta! O art. 102, caput e inciso I, 'a', CF/88 atribui ao STF, precipuamente como guardião da Constituição, processar e julgar originariamente a ADI de lei ou ato normativo federal ou estadual.",
+    C: "Incorreta. Não há essa competência regionalizada por TRF para ADI — é competência originária e exclusiva do STF, órgão de cúpula nacional.",
+    D: "Incorreta. A competência está fixada diretamente na própria Constituição (art. 102, I, 'a'), não dependendo de lei ordinária para sua definição."
+  },
+  fundamento: "Art. 102, caput e I, 'a', CF/88.",
+  caqui: "O STF é 'o guardião da Constituição' — expressão que a própria CF usa. Por isso concentra a competência para o controle abstrato de constitucionalidade (ADI, ADC, ADPF) de leis e atos normativos federais ou estaduais em face da própria Constituição Federal."
+},
+{
+  num: 13,
+  exame: "",
+  titulo: "Súmula Vinculante",
+  enunciado: "O Supremo Tribunal Federal, após reiteradas decisões sobre matéria constitucional, pretende editar enunciado com efeito vinculante em relação aos demais órgãos do Poder Judiciário e à administração pública.",
+  comando: "Considerando o art. 103-A da CF/88, assinale a alternativa correta.",
+  gabarito: "D",
+  alternativas: {
+    A: "A súmula vinculante pode ser aprovada por maioria simples dos membros do STF presentes à sessão, sem quórum qualificado.",
+    B: "A súmula vinculante, uma vez editada, vincula apenas os demais órgãos do Poder Judiciário, não alcançando a administração pública direta e indireta.",
+    C: "A súmula vinculante, depois de aprovada, é definitiva e insuscetível de revisão ou cancelamento pelo próprio STF.",
+    D: "O Supremo Tribunal Federal poderá, de ofício ou por provocação, mediante decisão de dois terços dos seus membros, após reiteradas decisões sobre matéria constitucional, aprovar súmula que terá efeito vinculante em relação aos demais órgãos do Poder Judiciário e à administração pública direta e indireta."
+  },
+  feedbacks: {
+    A: "Incorreta. Exige-se quórum qualificado de dois terços dos membros do STF, não maioria simples.",
+    B: "Incorreta. A eficácia vinculante alcança tanto os demais órgãos do Judiciário quanto a administração pública direta e indireta, nas esferas federal, estadual e municipal.",
+    C: "Incorreta. A súmula vinculante pode ser revista ou cancelada pelo próprio STF, na forma estabelecida em lei.",
+    D: "Correta! O art. 103-A, CF/88 (EC 45/2004) exige aprovação por dois terços dos membros do STF, após reiteradas decisões sobre matéria constitucional, com eficácia vinculante em relação aos demais órgãos do Judiciário e à administração pública direta e indireta, em todas as esferas."
+  },
+  fundamento: "Art. 103-A, CF/88 (EC 45/2004).",
+  caqui: "A súmula vinculante é uma das grandes novidades da Reforma do Judiciário de 2004: precisa de 2/3 dos Ministros do STF, de decisões reiteradas sobre matéria constitucional, e, uma vez aprovada, obriga tanto o Judiciário quanto toda a administração pública (não é só uma orientação — é vinculante mesmo). E pode ser revista ou cancelada depois, não é eterna e imutável."
+},
+{
+  num: 14,
+  exame: "",
+  titulo: "Legitimados para Ação Direta de Inconstitucionalidade",
+  enunciado: "Uma entidade de classe de âmbito nacional pretende ajuizar ação direta de inconstitucionalidade contra lei federal que considera violar a Constituição.",
+  comando: "Considerando o art. 103 da CF/88, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "Podem propor a ação direta de inconstitucionalidade, entre outros legitimados, o Presidente da República, a Mesa do Senado Federal, a Mesa da Câmara dos Deputados, o Procurador-Geral da República, o Conselho Federal da OAB, partido político com representação no Congresso Nacional, e confederação sindical ou entidade de classe de âmbito nacional.",
+    B: "Qualquer cidadão brasileiro, no gozo de seus direitos políticos, tem legitimidade ativa para propor ADI perante o STF.",
+    C: "A legitimidade para propor ADI é exclusiva do Procurador-Geral da República, em razão de sua função de fiscal da ordem jurídica.",
+    D: "Partidos políticos sem representação no Congresso Nacional também têm legitimidade para propor ADI, desde que registrados no Tribunal Superior Eleitoral."
+  },
+  feedbacks: {
+    A: "Correta! O art. 103, CF/88 traz o rol taxativo de legitimados para ADI/ADC, incluindo Presidente da República, Mesas do Senado e da Câmara, PGR, Conselho Federal da OAB, partido político com representação no Congresso, e confederação sindical ou entidade de classe de âmbito nacional, entre outros.",
+    B: "Incorreta. O cidadão comum não tem legitimidade para ADI — diferente da ação popular, o controle abstrato tem rol de legitimados restrito e taxativo.",
+    C: "Incorreta. A legitimidade não é exclusiva do PGR — é um rol amplo e taxativo, com vários outros legitimados.",
+    D: "Incorreta. O partido político precisa ter representação no Congresso Nacional para propor ADI — essa é uma exigência expressa do art. 103, VIII, CF/88."
+  },
+  fundamento: "Art. 103, CF/88.",
+  caqui: "O rol de legitimados para ADI é taxativo — não é para qualquer um. Vale a pena decorar que o partido político PRECISA ter representação no Congresso (mesmo que seja um só parlamentar), e que confederação sindical ou entidade de classe precisa ser de âmbito NACIONAL — associações locais ou regionais não entram nessa lista."
+},
+{
+  num: 15,
+  exame: "",
+  titulo: "Conselho Nacional de Justiça — Composição",
+  enunciado: "Discute-se a composição e o mandato dos membros do Conselho Nacional de Justiça.",
+  comando: "Considerando o art. 103-B da CF/88, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "O CNJ é composto por vinte e cinco membros, com mandato vitalício, à semelhança dos Ministros do STF.",
+    B: "O CNJ é composto exclusivamente por magistrados de carreira, sem participação de membros do Ministério Público, da OAB ou de cidadãos indicados pelo Congresso Nacional.",
+    C: "O Conselho Nacional de Justiça compõe-se de 15 membros, com mandato de dois anos, admitida uma recondução, reunindo magistrados de diferentes tribunais, membros do Ministério Público, advogados e cidadãos indicados pelo Congresso Nacional.",
+    D: "A composição do CNJ é definida livremente por resolução do próprio Conselho, sem parâmetro fixado na Constituição Federal."
+  },
+  feedbacks: {
+    A: "Incorreta. São 15 membros, não 25, e o mandato não é vitalício — é de 2 anos, admitida uma recondução.",
+    B: "Incorreta. A composição é plural, incluindo também membros do MP, advogados indicados pela OAB e cidadãos indicados pelo Congresso Nacional — não é só magistrados.",
+    C: "Correta! O art. 103-B, CF/88 (EC 45/2004) fixa a composição do CNJ em 15 membros, com mandato de 2 anos, admitida uma recondução, reunindo representantes de diferentes tribunais, do MP, da advocacia e cidadãos indicados pelo Congresso.",
+    D: "Incorreta. A composição está definida diretamente na Constituição Federal (art. 103-B), não é matéria deixada à resolução interna do próprio órgão."
+  },
+  fundamento: "Art. 103-B, CF/88 (EC 45/2004).",
+  caqui: "O CNJ foi criado justamente para ser um órgão de controle plural do próprio Judiciário — por isso reúne, além de magistrados de vários tribunais, também membros do MP, advogados e cidadãos indicados pelo Legislativo. Mandato de 2 anos, com direito a uma recondução — não é vitalício como o cargo de Ministro do STF."
+},
+{
+  num: 16,
+  exame: "",
+  titulo: "Competências do CNJ",
+  enunciado: "O Conselho Nacional de Justiça atua no controle da atuação administrativa e financeira do Poder Judiciário e do cumprimento dos deveres funcionais dos juízes.",
+  comando: "Considerando o art. 103-B, §4º, da CF/88, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "O CNJ tem competência para rever, no mérito, decisões judiciais proferidas por qualquer juiz ou tribunal, atuando como instância recursal ordinária.",
+    B: "Compete ao CNJ o controle da atuação administrativa e financeira do Poder Judiciário e do cumprimento dos deveres funcionais dos juízes, podendo, entre outras atribuições, receber reclamações contra membros ou órgãos do Judiciário e rever, de ofício ou mediante provocação, processos disciplinares de juízes ou membros de tribunais julgados há menos de um ano.",
+    C: "O CNJ não possui qualquer competência disciplinar sobre magistrados, restringindo-se a atribuições estritamente administrativas de natureza orçamentária.",
+    D: "As competências do CNJ se limitam à magistratura federal, não alcançando os tribunais e juízes estaduais."
+  },
+  feedbacks: {
+    A: "Incorreta. O CNJ não revisa o MÉRITO de decisões judiciais — sua atuação é de controle administrativo, financeiro e disciplinar, não jurisdicional sobre o conteúdo das decisões.",
+    B: "Correta! O art. 103-B, §4º, CF/88 atribui ao CNJ o controle da atuação administrativa e financeira do Judiciário e do cumprimento dos deveres funcionais dos juízes, incluindo receber reclamações e rever processos disciplinares julgados há menos de um ano.",
+    C: "Incorreta. O CNJ tem sim competência disciplinar — pode rever processos disciplinares e até avocar processos, dentro dos limites constitucionais.",
+    D: "Incorreta. As competências do CNJ alcançam tanto a magistratura federal quanto a estadual — é órgão de controle de todo o Poder Judiciário nacional (com exceção do próprio STF, que não se submete a ele)."
+  },
+  fundamento: "Art. 103-B, §4º, CF/88.",
+  caqui: "O CNJ é órgão de controle ADMINISTRATIVO, FINANCEIRO e DISCIPLINAR — não é uma 'quarta instância' que reexamina o mérito das decisões judiciais. Ele fiscaliza como os tribunais e juízes se comportam institucionalmente e disciplinarmente, não o conteúdo do que decidiram nos processos."
+},
+{
+  num: 17,
+  exame: "",
+  titulo: "Competência do STJ",
+  enunciado: "Discute-se qual tribunal é competente para julgar recurso especial interposto contra decisão de Tribunal de Justiça estadual que teria contrariado tratado ou lei federal.",
+  comando: "Considerando o art. 105, III, da CF/88, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "Compete ao Superior Tribunal de Justiça julgar, em recurso especial, as causas decididas em única ou última instância pelos Tribunais Regionais Federais ou pelos Tribunais dos Estados/DF, quando a decisão recorrida contrariar tratado ou lei federal, ou lhes negar vigência.",
+    B: "O recurso especial é sempre julgado pelo próprio Supremo Tribunal Federal, órgão máximo do Poder Judiciário brasileiro.",
+    C: "A competência para recurso especial é do Tribunal Regional Federal da respectiva região, e não do STJ.",
+    D: "Não existe a figura do recurso especial no ordenamento constitucional brasileiro, apenas o recurso extraordinário."
+  },
+  feedbacks: {
+    A: "Correta! O art. 105, III, 'a', CF/88 atribui ao STJ a competência para julgar recurso especial contra decisões de TRFs ou Tribunais dos Estados/DF que contrariem tratado ou lei federal, ou lhes neguem vigência (entre outras hipóteses do mesmo inciso).",
+    B: "Incorreta. O recurso especial é julgado pelo STJ, não pelo STF — o STF julga o recurso extraordinário, voltado a questões constitucionais.",
+    C: "Incorreta. Os TRFs não julgam recurso especial contra suas próprias decisões — essa competência é do STJ, tribunal superior.",
+    D: "Incorreta. O recurso especial existe e está expressamente previsto no art. 105, III, CF/88, distinto do recurso extraordinário do art. 102, III."
+  },
+  fundamento: "Art. 105, III, CF/88.",
+  caqui: "Não confunda os dois recursos de natureza excepcional: recurso ESPECIAL vai para o STJ e discute violação de LEI FEDERAL; recurso EXTRAORDINÁRIO vai para o STF e discute violação da CONSTITUIÇÃO. 'Especial de lei, extraordinário de Constituição' é um macete clássico para não trocar os dois."
+},
+{
+  num: 18,
+  exame: "",
+  titulo: "Competência da Justiça do Trabalho",
+  enunciado: "Um trabalhador ajuíza ação buscando o reconhecimento de vínculo empregatício e o pagamento de verbas rescisórias não quitadas pelo empregador.",
+  comando: "Considerando o art. 114 da CF/88, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "A competência para julgar essa ação é da Justiça Comum estadual, por se tratar de relação contratual entre particulares.",
+    B: "A competência para julgar essa ação é do Superior Tribunal de Justiça, em razão da relevância da matéria trabalhista.",
+    C: "Compete à Justiça do Trabalho processar e julgar as ações oriundas da relação de trabalho, abrangidas aí as ações que envolvam o ente público, e outras controvérsias decorrentes da relação de trabalho, na forma da lei.",
+    D: "A Justiça do Trabalho não tem competência para reconhecimento de vínculo empregatício, matéria reservada exclusivamente à fiscalização administrativa do Ministério do Trabalho."
+  },
+  feedbacks: {
+    A: "Incorreta. A competência para ações oriundas da relação de trabalho é da Justiça do Trabalho, não da Justiça Comum estadual.",
+    B: "Incorreta. O STJ não tem competência originária para esse tipo de ação — é competência de primeiro grau da Justiça do Trabalho (Varas do Trabalho).",
+    C: "Correta! O art. 114, I, CF/88 (redação da EC 45/2004) atribui à Justiça do Trabalho a competência para processar e julgar as ações oriundas da relação de trabalho, incluindo os entes da administração pública, entre outras controvérsias na forma da lei.",
+    D: "Incorreta. O reconhecimento de vínculo empregatício é justamente uma das matérias centrais de competência da Justiça do Trabalho, não uma questão reservada à fiscalização administrativa."
+  },
+  fundamento: "Art. 114, I, CF/88 (EC 45/2004).",
+  caqui: "A EC 45/2004 ampliou bastante a competência da Justiça do Trabalho: não é mais só sobre 'relação de emprego' no sentido estrito, mas sobre a 'relação de trabalho' de forma mais ampla, incluindo até entes públicos como parte."
+},
+{
+  num: 19,
+  exame: "",
+  titulo: "Organização da Justiça Estadual",
+  enunciado: "Discute-se a competência para organizar a Justiça dos Estados-membros da Federação.",
+  comando: "Considerando o art. 125 da CF/88, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "A organização da Justiça estadual compete exclusivamente à União, mediante lei complementar federal, sem qualquer margem de disciplina própria pelos Estados.",
+    B: "Os Estados organizarão sua Justiça, observados os princípios estabelecidos na Constituição Federal, cabendo à lei de organização judiciária de iniciativa do Tribunal de Justiça dispor sobre essa organização.",
+    C: "A competência para organizar a Justiça estadual é do Conselho Nacional de Justiça, órgão federal de controle do Judiciário.",
+    D: "Não há qualquer diretriz constitucional aplicável à organização da Justiça estadual, tratando-se de matéria de exclusiva autonomia dos Estados, sem qualquer limite federal."
+  },
+  feedbacks: {
+    A: "Incorreta. Os Estados organizam sua própria Justiça — não é competência exclusiva da União, embora devam observar os princípios constitucionais.",
+    B: "Correta! O art. 125, caput e §1º, CF/88 estabelece que os Estados organizarão sua Justiça, observados os princípios da CF, cabendo ao Tribunal de Justiça a iniciativa da lei de organização judiciária.",
+    C: "Incorreta. O CNJ não organiza a Justiça estadual — apenas exerce controle administrativo, financeiro e disciplinar sobre o Judiciário em geral.",
+    D: "Incorreta. Há, sim, diretrizes constitucionais a observar — a autonomia estadual não é absoluta e irrestrita nessa matéria."
+  },
+  fundamento: "Art. 125, caput e §1º, CF/88.",
+  caqui: "A organização da Justiça estadual tem uma divisão de tarefas: os princípios gerais vêm da Constituição Federal (vale para todos os Estados); dentro desses limites, cada Estado organiza sua própria Justiça, com a lei de organização judiciária nascendo por iniciativa do próprio Tribunal de Justiça — não do Governador nem da Assembleia Legislativa sozinha."
+},
+{
+  num: 20,
+  exame: "",
+  titulo: "Autonomia Financeira do Poder Judiciário",
+  enunciado: "O Poder Judiciário elabora sua proposta orçamentária, a ser encaminhada dentro dos limites estipulados conjuntamente com os demais Poderes na lei de diretrizes orçamentárias.",
+  comando: "Considerando o art. 99 da CF/88, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "Ao Poder Judiciário é assegurada autonomia administrativa e financeira, cabendo aos tribunais elaborar suas propostas orçamentárias dentro dos limites estipulados conjuntamente com os demais Poderes na lei de diretrizes orçamentárias.",
+    B: "O Poder Judiciário não possui autonomia orçamentária própria, dependendo integralmente da proposta elaborada pelo Poder Executivo.",
+    C: "A elaboração da proposta orçamentária do Judiciário compete exclusivamente ao Conselho Nacional de Justiça, com exclusão dos demais tribunais.",
+    D: "Os tribunais podem elaborar suas propostas orçamentárias livremente, sem qualquer limite fixado em conjunto com os demais Poderes."
+  },
+  feedbacks: {
+    A: "Correta! O art. 99, caput e §1º, CF/88 assegura autonomia administrativa e financeira ao Judiciário, com elaboração de propostas orçamentárias pelos tribunais, dentro dos limites estipulados conjuntamente com os demais Poderes na LDO.",
+    B: "Incorreta. Há autonomia orçamentária expressamente assegurada — o Judiciário não depende de proposta elaborada pelo Executivo.",
+    C: "Incorreta. Cada tribunal elabora sua própria proposta orçamentária — não é atribuição exclusiva do CNJ.",
+    D: "Incorreta. Há, sim, limite: os valores devem respeitar os parâmetros estipulados conjuntamente com os demais Poderes na LDO — não é liberdade irrestrita."
+  },
+  fundamento: "Art. 99, caput e §1º, CF/88.",
+  caqui: "Autonomia não é sinônimo de 'sem limite nenhum': o Judiciário elabora sua própria proposta orçamentária (autonomia real), mas dentro de parâmetros combinados com os outros Poderes via LDO — um equilíbrio entre independência institucional e disciplina fiscal conjunta."
+},
+{
+  num: 21,
+  exame: "",
+  titulo: "Precatórios",
+  enunciado: "Uma entidade pública é condenada, por decisão judicial transitada em julgado, ao pagamento de quantia certa a um particular.",
+  comando: "Considerando o art. 100 da CF/88, assinale a alternativa correta.",
+  gabarito: "D",
+  alternativas: {
+    A: "O pagamento de quantias devidas pela Fazenda Pública em razão de decisão judicial pode ser feito livremente, sem qualquer ordem cronológica de apresentação.",
+    B: "Os créditos de natureza alimentícia não têm qualquer preferência em relação aos demais créditos no pagamento de precatórios.",
+    C: "O regime de precatórios aplica-se apenas aos créditos de pequeno valor, sendo os créditos de maior valor pagos imediatamente após o trânsito em julgado.",
+    D: "Os pagamentos devidos pelas Fazendas Públicas em virtude de sentença judiciária far-se-ão exclusivamente na ordem cronológica de apresentação dos precatórios, ressalvados os créditos de natureza alimentícia, que gozam de preferência sobre os demais."
+  },
+  feedbacks: {
+    A: "Incorreta. Há, sim, ordem cronológica obrigatória de apresentação dos precatórios — não é pagamento livre e discricionário.",
+    B: "Incorreta. Os créditos de natureza alimentícia têm preferência expressa sobre os demais no regime de pagamento de precatórios.",
+    C: "Incorreta. O regime de precatórios é a regra geral para pagamento de condenações judiciais da Fazenda Pública — créditos de pequeno valor têm regime distinto (Requisição de Pequeno Valor - RPV), dispensando precatório, mas isso não inverte a lógica descrita na alternativa.",
+    D: "Correta! O art. 100, caput, CF/88 determina que os pagamentos da Fazenda Pública decorrentes de decisão judicial seguem a ordem cronológica de apresentação dos precatórios, ressalvada a preferência dos créditos de natureza alimentícia."
+  },
+  fundamento: "Art. 100, caput e §1º, CF/88.",
+  caqui: "O sistema de precatórios existe para dar previsibilidade e isonomia ao pagamento de dívidas judiciais da Fazenda Pública — todo mundo entra numa fila organizada por ordem de chegada, com uma fila preferencial para créditos alimentícios (salários, indenizações por morte/invalidez etc.), que furam a fila comum."
+},
+{
+  num: 22,
+  exame: "",
+  titulo: "Repercussão Geral no Recurso Extraordinário",
+  enunciado: "Uma parte interpõe recurso extraordinário ao STF, discutindo questão constitucional que pretende ver examinada pela Corte.",
+  comando: "Considerando o art. 102, §3º, da CF/88, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "Todo recurso extraordinário deve ser conhecido pelo STF, independentemente de qualquer filtro de relevância da questão constitucional discutida.",
+    B: "No recurso extraordinário, o recorrente deve demonstrar a repercussão geral das questões constitucionais discutidas no caso, a fim de que o Tribunal examine a admissão do recurso, somente podendo recusá-lo pela manifestação de dois terços de seus membros.",
+    C: "A repercussão geral é requisito aplicável apenas ao recurso especial julgado pelo STJ, não ao recurso extraordinário do STF.",
+    D: "A recusa do STF em admitir recurso extraordinário por ausência de repercussão geral pode ser decidida por qualquer Ministro, isoladamente, sem necessidade de quórum específico."
+  },
+  feedbacks: {
+    A: "Incorreta. Há sim o filtro da repercussão geral — nem todo RE é automaticamente conhecido pelo STF.",
+    B: "Correta! O art. 102, §3º, CF/88 (EC 45/2004) exige a demonstração da repercussão geral no recurso extraordinário, e a recusa do STF em admiti-lo só pode ocorrer pela manifestação de 2/3 dos seus membros.",
+    C: "Incorreta. A repercussão geral é requisito do recurso EXTRAORDINÁRIO (STF), não do recurso especial (STJ), que tem outros filtros processuais próprios.",
+    D: "Incorreta. A recusa exige quórum qualificado de 2/3 dos membros do STF — não é decisão isolada de um único Ministro."
+  },
+  fundamento: "Art. 102, §3º, CF/88 (EC 45/2004).",
+  caqui: "A repercussão geral é um filtro criado pela Reforma do Judiciário para o STF não afogar em recursos extraordinários sem relevância nacional — só entra quem discute algo relevante do ponto de vista econômico, político, social ou jurídico, que ultrapasse o interesse subjetivo das partes. E, para recusar, precisa de 2/3 dos Ministros — não é fácil barrar um recurso por esse filtro."
+},
+{
+  num: 23,
+  exame: "",
+  titulo: "Caso Combinado: Vitaliciedade e Quinto Constitucional",
+  enunciado: "Carla é juíza de carreira, recém-empossada, com um ano de exercício. Pedro é advogado com doze anos de atividade profissional, indicado na lista sêxtupla da OAB para uma vaga de desembargador em Tribunal de Justiça.",
+  comando: "Considerando os arts. 94 e 95 da CF/88, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "Carla já goza de vitaliciedade plena, com perda do cargo possível apenas por sentença judicial; Pedro, ao ser nomeado desembargador pelo quinto constitucional, também adquire vitaliciedade apenas após dois anos de exercício no novo cargo.",
+    B: "Carla e Pedro seguem exatamente o mesmo regime de ingresso na magistratura, ambos submetidos a concurso público de provas e títulos.",
+    C: "Carla, com um ano de exercício, ainda não completou o prazo de dois anos para vitaliciedade plena, podendo perder o cargo por deliberação do tribunal a que estiver vinculada; Pedro ingressa no tribunal por via diversa do concurso público, mediante o quinto constitucional, exigindo mais de dez anos de efetiva atividade profissional.",
+    D: "Nem Carla nem Pedro têm qualquer garantia constitucional de vitaliciedade, por se tratar de magistratura estadual, regida exclusivamente pela lei de organização judiciária local."
+  },
+  feedbacks: {
+    A: "Incorreta. Carla, com apenas 1 ano de exercício, ainda não tem a vitaliciedade plena (que só vem após 2 anos) — pode perder o cargo por deliberação do tribunal nesse período inicial.",
+    B: "Incorreta. Pedro não ingressa por concurso público — ele ingressa pela via do quinto constitucional (lista sêxtupla, lista tríplice, nomeação), diferente do concurso de provas e títulos de Carla.",
+    C: "Correta! Combina corretamente os dois institutos: Carla, com 1 ano, está no período pré-vitaliciedade plena (art. 95, I); Pedro ingressa pelo quinto constitucional, via diversa do concurso, exigindo mais de 10 anos de atividade profissional, notório saber jurídico e reputação ilibada (art. 94).",
+    D: "Incorreta. Ambos têm garantias constitucionais aplicáveis à magistratura, inclusive na esfera estadual — os princípios do art. 93 e as garantias do art. 95 se aplicam a toda a magistratura nacional, respeitadas as peculiaridades de cada via de ingresso."
+  },
+  fundamento: "Arts. 94 e 95, CF/88.",
+  caqui: "Esse caso mistura dois temas que a banca adora combinar: o tempo de carreira de Carla (vitaliciedade em progresso) e a via de ingresso de Pedro (quinto constitucional, não concurso). São dois caminhos diferentes para chegar à magistratura de segundo grau — um pela carreira desde a base, outro direto para o tribunal via lista sêxtupla."
+},
+{
+  num: 24,
+  exame: "",
+  titulo: "Justiça Militar da União",
+  enunciado: "Discute-se a estrutura da Justiça Militar da União e a composição do Superior Tribunal Militar.",
+  comando: "Considerando os arts. 122 e 123 da CF/88, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "São órgãos da Justiça Militar o Superior Tribunal Militar e os Tribunais e Juízes Militares instituídos por lei, competindo-lhes processar e julgar os crimes militares definidos em lei.",
+    B: "A Justiça Militar da União foi extinta pela Constituição de 1988, sendo os crimes militares julgados atualmente pela Justiça Federal comum.",
+    C: "O Superior Tribunal Militar é composto exclusivamente por oficiais das Forças Armadas, sem qualquer participação de civis.",
+    D: "A competência da Justiça Militar da União abrange qualquer crime cometido por militar, independentemente de sua natureza, inclusive crimes comuns sem qualquer relação com a atividade militar."
+  },
+  feedbacks: {
+    A: "Correta! Os arts. 122 e 124, CF/88 estabelecem o STM e os Tribunais e Juízes Militares como órgãos da Justiça Militar, com competência para processar e julgar os crimes militares definidos em lei.",
+    B: "Incorreta. A Justiça Militar da União não foi extinta — continua prevista e estruturada nos arts. 122 a 124, CF/88.",
+    C: "Incorreta. O STM tem composição mista, incluindo Ministros civis (juristas), além de oficiais-generais das três Forças Armadas.",
+    D: "Incorreta. A competência da Justiça Militar é restrita aos crimes militares definidos em lei — não abrange qualquer crime cometido por militar, independentemente de relação com a atividade militar."
+  },
+  fundamento: "Arts. 122 a 124, CF/88.",
+  caqui: "A Justiça Militar da União é uma Justiça especializada, com estrutura própria (STM no topo, Tribunais e Juízes Militares na base), restrita aos crimes MILITARES definidos em lei — não é qualquer crime que um militar cometa, mas especificamente os enquadrados como crime militar."
+},
+{
+  num: 25,
+  exame: "",
+  titulo: "Justiça Eleitoral — Composição",
+  enunciado: "Discute-se a estrutura dos órgãos que compõem a Justiça Eleitoral brasileira.",
+  comando: "Considerando o art. 118 da CF/88, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "A Justiça Eleitoral é composta exclusivamente pelo Tribunal Superior Eleitoral, sem órgãos regionais ou de primeira instância.",
+    B: "São órgãos da Justiça Eleitoral o Tribunal Superior Eleitoral, os Tribunais Regionais Eleitorais, os Juízes Eleitorais e as Juntas Eleitorais.",
+    C: "A Justiça Eleitoral integra o Poder Executivo, vinculada ao Ministério da Justiça, e não o Poder Judiciário.",
+    D: "Os Tribunais Regionais Eleitorais são compostos exclusivamente por magistrados de carreira da Justiça Federal, sem qualquer participação de advogados."
+  },
+  feedbacks: {
+    A: "Incorreta. A Justiça Eleitoral tem estrutura completa: TSE, TREs, Juízes e Juntas Eleitorais — não se resume ao órgão de cúpula.",
+    B: "Correta! O art. 118, CF/88 lista os órgãos da Justiça Eleitoral: TSE, TREs, Juízes Eleitorais e Juntas Eleitorais.",
+    C: "Incorreta. A Justiça Eleitoral integra o Poder Judiciário (art. 92, V, CF/88), não o Poder Executivo.",
+    D: "Incorreta. Os TREs também têm composição mista, incluindo advogados (também pela sistemática do 'quinto', com peculiaridades próprias da Justiça Eleitoral), além de desembargadores e juízes federais."
+  },
+  fundamento: "Art. 118, CF/88 c/c art. 92, V, CF/88.",
+  caqui: "A Justiça Eleitoral tem estrutura em quatro níveis: TSE (cúpula nacional), TREs (um por Estado/DF), Juízes Eleitorais (comarcas) e Juntas Eleitorais (apuração local). E é Justiça, com J maiúsculo — integra o Poder Judiciário, nunca o Executivo."
+},
+{
+  num: 26,
+  exame: "",
+  titulo: "Panorama Geral — Poder Judiciário",
+  enunciado: "Fechando a revisão do tema, um candidato organiza o esqueleto constitucional completo do Poder Judiciário.",
+  comando: "Assinale a alternativa que resume corretamente o regime constitucional do Poder Judiciário (arts. 92 a 126, CF/88).",
+  gabarito: "D",
+  alternativas: {
+    A: "O Poder Judiciário é composto apenas pelo STF e pelos Tribunais de Justiça estaduais, sem Justiças especializadas nem órgão de controle administrativo.",
+    B: "As garantias da magistratura (vitaliciedade, inamovibilidade, irredutibilidade de subsídio) são absolutas, sem qualquer exceção prevista na própria Constituição.",
+    C: "O ingresso na magistratura se dá sempre por concurso público, não havendo qualquer via alternativa de acesso aos tribunais de segundo grau.",
+    D: "O Poder Judiciário reúne órgãos comuns (STF, STJ, Justiça Federal e Estadual) e especializados (Trabalho, Eleitoral, Militar), com o CNJ exercendo controle administrativo/disciplinar; a magistratura ingressa por concurso (art. 93) ou, nos tribunais de 2º grau, também pelo quinto constitucional (art. 94); goza de garantias (vitaliciedade, inamovibilidade, irredutibilidade de subsídio) sujeitas a exceções constitucionais expressas; e o STF, por meio de ADI/ADC/ADPF, recurso extraordinário e súmula vinculante, exerce a guarda da Constituição."
+  },
+  feedbacks: {
+    A: "Incorreta. O Judiciário é muito mais amplo: inclui STJ, Justiça Federal, Justiças especializadas (Trabalho, Eleitoral, Militar) e o CNJ como órgão de controle.",
+    B: "Incorreta. As garantias comportam exceções expressas: vitaliciedade tem regime diferenciado nos 2 primeiros anos; inamovibilidade cede por interesse público; irredutibilidade é ressalvada pelo teto remuneratório e por descontos legais (como Imposto de Renda).",
+    C: "Incorreta. Há a via alternativa do quinto constitucional (art. 94) para parte das vagas em TRFs e Tribunais de Justiça — não é só concurso público.",
+    D: "Correta! Resume corretamente todo o sistema: órgãos comuns e especializados (art. 92), CNJ como controle (art. 103-B), ingresso por concurso ou quinto constitucional (arts. 93-94), garantias com exceções (art. 95), e o papel do STF na guarda da Constituição via controle concentrado, recurso extraordinário e súmula vinculante (arts. 102-103-A)."
+  },
+  fundamento: "Arts. 92 a 126, CF/88.",
+  caqui: "Fechando com o esqueleto completo: quem integra o Judiciário (órgãos comuns + especializados + CNJ), como se ingressa (concurso ou quinto constitucional), quais garantias protegem o magistrado (com suas exceções), e como o STF exerce seu papel de guardião da Constituição (controle concentrado, recurso extraordinário com repercussão geral, súmula vinculante). Domine esse mapa e a maioria das questões sobre Poder Judiciário cai tranquilamente."
+}
+];
+
+let current = 0;
+const estado = Array(QUESTOES.length).fill(null);
+
+function init() {
+  const nav = document.getElementById('nav-wrap');
+  const container = document.getElementById('questions-container');
+
+  QUESTOES.forEach((q, i) => {
+    const nb = document.createElement('button');
+    nb.className = 'nav-btn' + (i === 0 ? ' active' : '');
+    nb.textContent = i + 1;
+    nb.onclick = () => goTo(i);
+    nb.id = 'nav-' + i;
+    nav.appendChild(nb);
+
+    const card = document.createElement('div');
+    card.className = 'q-card' + (i === 0 ? ' visible' : '');
+    card.id = 'card-' + i;
+    card.innerHTML = buildCard(q, i);
+    container.appendChild(card);
+  });
+
+  updatePagination();
+  updateScore();
+}
+
+function buildCard(q, i) {
+  const alts = Object.entries(q.alternativas).map(([letra, texto]) =>
+    `<button class="alt-btn" onclick="responder(${i}, '${letra}', this)" data-letra="${letra}">
+      <span class="alt-letter">${letra}</span>
+      <span class="alt-text">${texto}</span>
+    </button>`
+  ).join('');
+
+  return `
+    <div class="q-header">
+      <span class="q-num">Questão ${q.num}</span>
+      ${q.exame ? `<span class="q-exame">${q.exame}</span>` : ''}
+    </div>
+    <h2 class="q-titulo">${q.titulo}</h2>
+    <div class="enunciado">${q.enunciado}</div>
+    <p class="comando">${q.comando}</p>
+    <div class="alternativas" id="alts-${i}">${alts}</div>
+    <div class="feedback" id="fb-${i}"></div>
+    <div class="fundamento-box" id="fund-${i}">
+      <h4>📖 Fundamento legal</h4>
+      ${q.fundamento}
+    </div>
+    <div class="caqui-box" id="caqui-${i}">
+      <h4>🍊 Explicação didática do Professor Caqui</h4>
+      ${q.caqui}
+    </div>
+    <div class="card-actions">
+      <div class="btn-group">
+        <button class="btn purple" id="btn-fund-${i}" onclick="toggleFund(${i})">Ver fundamento legal</button>
+        <button class="btn caqui" id="btn-caqui-${i}" onclick="toggleCaqui(${i})">Explicação do Prof. Caqui</button>
+        <button class="btn" id="btn-reset-${i}" onclick="resetQ(${i})">↺ Tentar novamente</button>
+      </div>
+      <span class="status-text" id="status-${i}"></span>
+    </div>
+  `;
+}
+
+function responder(idx, letra, btn) {
+  if (estado[idx] !== null) return;
+  estado[idx] = letra;
+
+  const q = QUESTOES[idx];
+  const alts = document.querySelectorAll(`#alts-${idx} .alt-btn`);
+  alts.forEach(b => {
+    b.disabled = true;
+    if (b.dataset.letra === q.gabarito) b.classList.add('correct');
+    if (b.dataset.letra === letra && letra !== q.gabarito) b.classList.add('wrong');
+  });
+
+  const acertou = letra === q.gabarito;
+  const fb = document.getElementById('fb-' + idx);
+  fb.className = 'feedback show ' + (acertou ? 'acerto' : 'erro');
+  fb.innerHTML = `<strong>${acertou ? '✓ Correta!' : '✗ Incorreta.'}</strong> ${q.feedbacks[letra]}`;
+
+  document.getElementById('status-' + idx).textContent = acertou ? 'Acerto!' : 'Gabarito: ' + q.gabarito;
+  document.getElementById('btn-reset-' + idx).className = 'btn show';
+  document.getElementById('btn-fund-' + idx).className = 'btn purple show';
+  document.getElementById('btn-caqui-' + idx).className = 'btn caqui show';
+
+  const navBtn = document.getElementById('nav-' + idx);
+  navBtn.classList.remove('active');
+  navBtn.classList.add(acertou ? 'correto' : 'errado');
+  if (idx === current) navBtn.classList.add('active');
+
+  updateScore();
+}
+
+function toggleFund(idx) {
+  const box = document.getElementById('fund-' + idx);
+  const btn = document.getElementById('btn-fund-' + idx);
+  const visible = box.classList.contains('show');
+  box.className = visible ? 'fundamento-box' : 'fundamento-box show';
+  btn.textContent = visible ? 'Ver fundamento legal' : 'Ocultar fundamento';
+}
+
+function toggleCaqui(idx) {
+  const box = document.getElementById('caqui-' + idx);
+  const btn = document.getElementById('btn-caqui-' + idx);
+  const visible = box.classList.contains('show');
+  box.className = visible ? 'caqui-box' : 'caqui-box show';
+  btn.textContent = visible ? 'Explicação do Prof. Caqui' : 'Ocultar explicação';
+}
+
+function resetQ(idx) {
+  estado[idx] = null;
+  const alts = document.querySelectorAll(`#alts-${idx} .alt-btn`);
+  alts.forEach(b => { b.disabled = false; b.className = 'alt-btn'; });
+  document.getElementById('fb-' + idx).className = 'feedback';
+  document.getElementById('fund-' + idx).className = 'fundamento-box';
+  document.getElementById('btn-fund-' + idx).className = 'btn purple';
+  document.getElementById('btn-fund-' + idx).textContent = 'Ver fundamento legal';
+  document.getElementById('caqui-' + idx).className = 'caqui-box';
+  document.getElementById('btn-caqui-' + idx).className = 'btn caqui';
+  document.getElementById('btn-caqui-' + idx).textContent = 'Explicação do Prof. Caqui';
+  document.getElementById('btn-reset-' + idx).className = 'btn';
+  document.getElementById('status-' + idx).textContent = '';
+
+  const navBtn = document.getElementById('nav-' + idx);
+  navBtn.className = 'nav-btn' + (idx === current ? ' active' : '');
+
+  updateScore();
+}
+
+function goTo(idx) {
+  document.getElementById('card-' + current).classList.remove('visible');
+  document.getElementById('nav-' + current).classList.remove('active');
+  current = idx;
+  document.getElementById('card-' + current).classList.add('visible');
+  const navBtn = document.getElementById('nav-' + current);
+  navBtn.classList.add('active');
+  updatePagination();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function navPage(dir) {
+  const next = current + dir;
+  if (next >= 0 && next < QUESTOES.length) goTo(next);
+}
+
+function updatePagination() {
+  document.getElementById('pg-info').textContent = (current + 1) + ' de ' + QUESTOES.length;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === QUESTOES.length - 1;
+}
+
+function updateScore() {
+  const respondidas = estado.filter(e => e !== null).length;
+  const acertos = estado.filter((e, i) => e === QUESTOES[i].gabarito).length;
+  const erros = respondidas - acertos;
+  document.getElementById('sc-total').textContent = respondidas;
+  document.getElementById('sc-acertos').textContent = acertos;
+  document.getElementById('sc-erros').textContent = erros;
+  const pct = Math.round((respondidas / QUESTOES.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = respondidas + ' de ' + QUESTOES.length + ' respondidas';
+}
+
+init();
+</script>
+</body>
+</html>
